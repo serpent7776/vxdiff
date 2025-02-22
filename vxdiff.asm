@@ -18,14 +18,18 @@ global _start
 _start:
 	mov rdi, purple4x4
 	mov rsi, white4x4
+	mov rdx, 16
+	mov rcx, 16
 	call _vxdiff
 	mov ebx, eax
 	mov eax, 1
 	int 0x80
 
 _vxdiff:
-	; RDI base image pixels
-	; RSI second image pixels
+	; RDI base image pixels encoded as RGBA bytes
+	; RSI second image pixels encoded as RGBA bytes
+	; RDX base image size in pixels
+	; RCX second image size in pixels
 	mov rax, 0b0001000100010001000100010001000100010001000100010001000100010001
 	kmovq k1, rax ; Rs
 	kshiftlq k2, k1, 1 ; Gs
@@ -48,8 +52,23 @@ _vxdiff:
 
 	vmovups zmm29, [delta_coef]
 
+	cmp rdx, rcx
+	cmovl rcx, rdx
+	mov rdx, rcx ; number of pixels to compare
+	shr rcx, 2 ; number of steps
+
+	xor rbx, rbx ; number of differences found
+
+.loop:
+	cmp rcx, 0
+	je .done
+
 	vmovdqu8 xmm1, [rdi]
 	vmovdqu8 xmm2, [rsi]
+
+	add rdi, 16
+	add rsi, 16
+	dec rcx
 
 	; replace pixels having alpha=0 with white
 	vpcmpequb k6 {k4}, xmm1, xmm0
@@ -148,4 +167,9 @@ _vxdiff:
 	kmov eax, k6
 	popcnt eax, eax
 
+	add rbx, rax
+	jmp .loop
+
+.done:
+	mov eax, ebx
 	ret
