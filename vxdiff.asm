@@ -11,6 +11,10 @@ align 64
 
 	max_delta: dd 352.15 ; 35215.0 * 0.1^2
 
+	pixel1: dq 0b1111
+	pixel2: dq 0b11111111
+	pixel3: dq 0b111111111111
+
 section .text
 global _vxdiff
 global _start
@@ -54,14 +58,33 @@ _vxdiff:
 
 	cmp rdx, rcx
 	cmovl rcx, rdx
-	mov rdx, rcx ; number of pixels to compare
-	shr rcx, 2 ; number of steps
+	mov rdx, rcx
+	and rdx, 0b11 ; leftover pixels
+	shr rcx, 2 ; number of loop iterations
 
 	xor rbx, rbx ; number of differences found
+	jmp .loop
+
+.leftovers:
+	test dl, dl
+	jz .done
+	dec dl
+	cmovz rax, [pixel1]
+	dec dl
+	cmovz rax, [pixel2]
+	dec dl
+	cmovz rax, [pixel3]
+	kmov k6, rax
+	vxorps xmm1, xmm1, xmm1
+	vxorps xmm2, xmm2, xmm2
+	vmovdqu8 xmm1 {k6}, [rdi]
+	vmovdqu8 xmm2 {k6}, [rsi]
+	xor dl, dl
+	jmp .loop_body
 
 .loop:
 	cmp rcx, 0
-	je .done
+	je .leftovers
 
 	vmovdqu8 xmm1, [rdi]
 	vmovdqu8 xmm2, [rsi]
@@ -70,6 +93,7 @@ _vxdiff:
 	add rsi, 16
 	dec rcx
 
+.loop_body:
 	; replace pixels having alpha=0 with white
 	vpcmpequb k6 {k4}, xmm1, xmm0
 	vmovdqu8 xmm1 {k6}, xmm31
