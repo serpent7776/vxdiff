@@ -1,4 +1,6 @@
 ; vim: set ft=nasm:
+DEFAULT REL
+
 section .data
 	zero: dq 0
 
@@ -22,25 +24,25 @@ section .data
 	testno: dq 0
 
 section .text
-global _vxdiff
-global _start
+global vxdiff
+global _test
 
 %macro TEST 5
-	mov rdi, purple4x4
-	mov rsi, white4x4
+	lea rdi, [purple4x4]
+	lea rsi, [white4x4]
 	mov rdx, %1
 	mov rcx, %3
 	mov r8, %2
 	mov r9, %4
 	inc qword[testno]
-	call _vxdiff
+	call vxdiff
 	cmp rax, %5
 	cmovne rbx, [testno]
 	; mov rbx, rax ; debug
 	jne .exit
 %endmacro
 
-_start:
+_test:
 	TEST 4, 4, 4, 4, 16
 	TEST 1, 1, 1, 1, 1
 	TEST 1, 4, 1, 4, 4
@@ -55,7 +57,7 @@ _start:
 	mov eax, 1
 	int 0x80
 
-_vxdiff:
+vxdiff:
 	; RDI base image pixels encoded in RGBA8 format
 	; RSI second image pixels encoded in RGBA8 format
 	; RDX base image width in pixels

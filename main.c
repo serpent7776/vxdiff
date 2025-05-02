@@ -3,6 +3,10 @@
 #include <spng.h>
 #include <string.h>
 
+size_t vxdiff(const uint8_t* base_image, const uint8_t* second_image,
+            uint64_t base_width, uint64_t second_width,
+            uint64_t base_height, uint64_t second_height);
+
 int compare_images(const char* path1, const char* path2) {
 	spng_ctx *ctx1 = NULL, *ctx2 = NULL;
 	void *out1 = NULL, *out2 = NULL;
@@ -71,14 +75,7 @@ int compare_images(const char* path1, const char* path2) {
 		return 1;
 	}
 
-	size_t differences = 0;
-	for (size_t i = 0; i < out_size1; i++) {
-		if (((unsigned char*)out1)[i] != ((unsigned char*)out2)[i]) {
-			printf("Difference at byte %zu: %d vs %d\n", 
-				i, ((unsigned char*)out1)[i], ((unsigned char*)out2)[i]);
-			differences++;
-		}
-	}
+	const size_t differences = vxdiff(out1, out2, ihdr1.width, ihdr2.width, ihdr1.height, ihdr2.height);
 
 	printf("Total differences found: %zu\n", differences);
 	return 0;
