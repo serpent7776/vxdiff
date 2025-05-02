@@ -1,4 +1,7 @@
+; vim: set ft=nasm:
 section .data
+	zero: dq 0
+
 align 64
 	rgb2y: times 4 dd 0.29889531,  0.58662247,  0.11448223, 0.0
 	rgb2i: times 4 dd 0.59597799, -0.27417610, -0.32180189, 0.0
@@ -15,25 +18,54 @@ align 64
 	pixel2: dq 0b11111111
 	pixel3: dq 0b111111111111
 
+section .data
+	testno: dq 0
+
 section .text
 global _vxdiff
 global _start
 
-_start:
+%macro TEST 5
 	mov rdi, purple4x4
 	mov rsi, white4x4
-	mov rdx, 16
-	mov rcx, 16
+	mov rdx, %1
+	mov rcx, %3
+	mov r8, %2
+	mov r9, %4
+	inc qword[testno]
 	call _vxdiff
-	mov ebx, eax
+	cmp rax, %5
+	cmovne rbx, [testno]
+	; mov rbx, rax ; debug
+	jne .exit
+%endmacro
+
+_start:
+	TEST 4, 4, 4, 4, 16
+	TEST 1, 1, 1, 1, 1
+	TEST 1, 4, 1, 4, 4
+	TEST 2, 2, 4, 4, 4
+	TEST 1, 1, 1, 1, 1
+	TEST 4, 4, 1, 1, 16
+	TEST 1, 1, 4, 4, 1
+	TEST 3, 4, 4, 3, 12
+.exit_ok:
+	xor rbx, rbx
+.exit:
 	mov eax, 1
 	int 0x80
 
 _vxdiff:
-	; RDI base image pixels encoded as RGBA bytes
-	; RSI second image pixels encoded as RGBA bytes
-	; RDX base image size in pixels
-	; RCX second image size in pixels
+	; RDI base image pixels encoded in RGBA8 format
+	; RSI second image pixels encoded in RGBA8 format
+	; RDX base image width in pixels
+	; RCX second image width in pixels
+	; R8 base image height in pixels
+	; R9 second image height in pixels
+
+	; local vars:
+	%define OVERFLOWED_Y QWORD[rsp-32] ; number of columns in the base image that overflow the second image
+
 	mov rax, 0b0001000100010001000100010001000100010001000100010001000100010001
 	kmovq k1, rax ; Rs
 	kshiftlq k2, k1, 1 ; Gs
@@ -56,44 +88,89 @@ _vxdiff:
 
 	vmovups zmm29, [delta_coef]
 
+	mov r15, rdx ; base image width
+
+	mov rax, rcx
 	cmp rdx, rcx
 	cmovl rcx, rdx
-	mov rdx, rcx
-	and rdx, 0b11 ; leftover pixels
-	shr rcx, 2 ; number of loop iterations
+
+	mov r13, rdx
+	sub r13, rcx ; base image pointer increment after x loop end
+	shl r13, 2
+	mov r14, rax
+	sub r14, rcx ; second image pointer increment after x loop end
+	shl r14, 2
+
+	mov r12, rcx ; number of x loop iterations
+
+	mov rax, r8
+	sub rax, r9
+	cmovs rax, [zero]
+	mov OVERFLOWED_Y, rax
+	mov rax, r8
+	cmp r9, r8
+	cmovl rax, r9
+	mov r15, rax
 
 	xor rbx, rbx ; number of differences found
-	jmp .loop
+	mov rax, rdx
+	mul OVERFLOWED_Y
+	add rbx, rax ; include overflowed columns
 
-.leftovers:
-	test dl, dl
-	jz .done
-	dec dl
+	mov rdx, r15
+
+	jmp .y_loop
+
+.x_leftovers:
+	; handles pixels in a row that is not divisible by 4
+	mov r15, rcx
+	shl r15, 2
+	test rcx, rcx
+	jz .next_row
+	dec rcx
 	cmovz rax, [pixel1]
-	dec dl
+	dec rcx
 	cmovz rax, [pixel2]
-	dec dl
+	dec rcx
 	cmovz rax, [pixel3]
 	kmov k6, rax
 	vxorps xmm1, xmm1, xmm1
 	vxorps xmm2, xmm2, xmm2
 	vmovdqu8 xmm1 {k6}, [rdi]
 	vmovdqu8 xmm2 {k6}, [rsi]
-	xor dl, dl
-	jmp .loop_body
+	add rsi, r15
+	add rdi, r15
+	xor rcx, rcx
+	jmp .x_loop_body
 
-.loop:
-	cmp rcx, 0
-	je .leftovers
+.next_row:
+	add rsi, r13
+	add rdi, r14
+	mov r15, r13
+	shr r15, 2
+	add rbx, r15 ; include overflowed pixels in current row
+
+.y_loop:
+	; loops over columns
+	cmp rdx, 0
+	jle .done
+
+	dec rdx
+	mov rcx, r12
+
+.x_loop:
+	; loops over pixels in a row
+	cmp rcx, 4
+	jl .x_leftovers
 
 	vmovdqu8 xmm1, [rdi]
 	vmovdqu8 xmm2, [rsi]
 
 	add rdi, 16
 	add rsi, 16
-	dec rcx
+	sub rcx, 4
 
-.loop_body:
+.x_loop_body:
 	; replace pixels having alpha=0 with white
 	vpcmpequb k6 {k4}, xmm1, xmm0
 	vmovdqu8 xmm1 {k6}, xmm31
@@ -192,7 +269,7 @@ _vxdiff:
 	popcnt eax, eax
 
 	add rbx, rax
-	jmp .loop
+	jmp .x_loop
 
 .done:
 	mov eax, ebx
