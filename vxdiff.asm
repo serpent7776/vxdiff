@@ -11,51 +11,14 @@ align 64
 
 	delta_coef: times 4 dd 0.5053, 0.299, 0.1957, 0.0
 
-	purple4x4: times 16 db 0xff, 0x00, 0xff, 0xff
-	white4x4:  times 16 db 0xff, 0xff, 0xff, 0xff
-
 	max_delta: dd 352.15 ; 35215.0 * 0.1^2
 
 	pixel1: dq 0b1111
 	pixel2: dq 0b11111111
 	pixel3: dq 0b111111111111
 
-section .data
-	testno: dq 0
-
 section .text
 global vxdiff
-global _test
-
-%macro TEST 5
-	lea rdi, [purple4x4]
-	lea rsi, [white4x4]
-	mov rdx, %1
-	mov rcx, %3
-	mov r8, %2
-	mov r9, %4
-	inc qword[testno]
-	call vxdiff
-	cmp rax, %5
-	cmovne rbx, [testno]
-	; mov rbx, rax ; debug
-	jne .exit
-%endmacro
-
-_test:
-	TEST 4, 4, 4, 4, 16
-	TEST 1, 1, 1, 1, 1
-	TEST 1, 4, 1, 4, 4
-	TEST 2, 2, 4, 4, 4
-	TEST 1, 1, 1, 1, 1
-	TEST 4, 4, 1, 1, 16
-	TEST 1, 1, 4, 4, 1
-	TEST 3, 4, 4, 3, 12
-.exit_ok:
-	xor rbx, rbx
-.exit:
-	mov eax, 1
-	int 0x80
 
 vxdiff:
 	; RDI base image pixels encoded in RGBA8 format
