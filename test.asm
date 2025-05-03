@@ -7,8 +7,10 @@ align 64
 	;                      R     G     B     A
 	purple4x4: times 16 db 0xff, 0x00, 0xff, 0xff
 	white4x4:  times 16 db 0xff, 0xff, 0xff, 0xff
+	trans4x4:  times 16 db 0xff, 0xff, 0xff, 0x00
 	purple5x5: times 25 db 0xff, 0x00, 0xff, 0xff
 	white5x5:  times 25 db 0xff, 0xff, 0xff, 0xff
+	trans5x5:  times 25 db 0xff, 0xff, 0xff, 0x00
 
 section .text
 global _start
@@ -38,7 +40,9 @@ _start:
 	TEST 4, 4, 1, 1, 16, purple4x4, white4x4
 	TEST 1, 1, 4, 4, 1, purple4x4, white4x4
 	TEST 3, 4, 4, 3, 12, purple4x4, white4x4
+	TEST 4, 4, 4, 4, 16, trans4x4, purple4x4
 	TEST 5, 5, 5, 5, 25, purple5x5, white5x5
+	TEST 5, 5, 5, 5, 25, trans5x5, purple5x5
 .exit_ok:
 	xor rbx, rbx
 .exit:
