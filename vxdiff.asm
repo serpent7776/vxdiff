@@ -137,9 +137,22 @@ vxdiff:
 
 .x_loop_body:
 	; replace pixels having alpha=0 with white
+	kxor k6, k6, k6
 	vpcmpequb k6 {k4}, xmm1, xmm0
-	vmovdqu8 xmm1 {k6}, xmm31
-	vpcmpequb k7 {k4}, xmm2, xmm0
+	kshiftlb k7, k6, 1
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
+	vmovdqu8 xmm1 {k7}, xmm31
+	;
+	kxor k6, k6, k6
+	vpcmpequb k6 {k4}, xmm2, xmm0
+	kshiftlb k7, k6, 1
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
 	vmovdqu8 xmm2 {k7}, xmm31
 
 	; convert bytes to floats
@@ -209,18 +222,18 @@ vxdiff:
 	vaddps zmm26, zmm23, zmm24
 	vaddps zmm26, zmm26, zmm25
 
-	; YIQ
+	; YIQ diff
 	vsubps zmm16, zmm16, zmm26
 
 	; YIQ*YIQ
 	vmulps zmm16, zmm16, zmm16
-
+	; YIQ*YIQ * delta coef
 	vmulps zmm16, zmm16, zmm29
 
 	vxorps zmm17, zmm17, zmm17
 	vxorps zmm18, zmm18, zmm18
 	vxorps zmm19, zmm19, zmm19
-	vshufps zmm17 {k1}, zmm16, zmm16, 0b00101010
+	vshufps zmm17 {k1}, zmm16, zmm16, 0b10101010
 	vshufps zmm18 {k1}, zmm16, zmm16, 0b01010101
 	vshufps zmm19 {k1}, zmm16, zmm16, 0b00000000
 
