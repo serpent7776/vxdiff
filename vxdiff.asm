@@ -80,9 +80,9 @@ vxdiff:
 	xor rbx, rbx ; number of differences found
 	mov rax, rdx
 	mul OVERFLOWED_Y
-	add rbx, rax ; include overflowed columns
+	add rbx, rax ; include overflowed rows
 
-	mov rdx, r15
+	mov rdx, r15 ; number of y iterations
 
 	jmp .y_loop
 
@@ -109,8 +109,8 @@ vxdiff:
 	jmp .x_loop_body
 
 .next_row:
-	add rsi, r13
-	add rdi, r14
+	add rdi, r13
+	add rsi, r14
 	mov r15, r13
 	shr r15, 2
 	add rbx, r15 ; include overflowed pixels in current row

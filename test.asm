@@ -45,6 +45,7 @@ _start:
 	TEST 5, 5, 5, 5, 25, purple5x5, white5x5
 	TEST 5, 5, 5, 5, 25, trans5x5, purple5x5
 	TEST 5, 5, 5, 5, 0, trans5x5, white5x5
+	TEST 4, 4, 5, 5, 0, purple4x4, purple5x5
 .exit_ok:
 	xor rbx, rbx
 .exit:
