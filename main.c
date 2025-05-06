@@ -63,13 +63,13 @@ int compare_images(const char* path1, const char* path2) {
 		return 1;
 	}
 
-	ret = spng_decode_image(ctx1, out1, out_size1, SPNG_FMT_RGBA8, 0);
+	ret = spng_decode_image(ctx1, out1, out_size1, SPNG_FMT_RGBA8, SPNG_DECODE_TRNS);
 	if (ret) {
 		fprintf(stderr, "Error decoding image 1\n");
 		return 1;
 	}
 
-	ret = spng_decode_image(ctx2, out2, out_size2, SPNG_FMT_RGBA8, 0);
+	ret = spng_decode_image(ctx2, out2, out_size2, SPNG_FMT_RGBA8, SPNG_DECODE_TRNS);
 	if (ret) {
 		fprintf(stderr, "Error decoding image 2\n");
 		return 1;
