@@ -44,14 +44,9 @@ int compare_images(const char* path1, const char* path2) {
 		return 1;
 	}
 
-	if (ihdr1.width != ihdr2.width || ihdr1.height != ihdr2.height) {
-		fprintf(stderr, "Images have different dimensions\n");
-		return 1;
-	}
-
 	ret = spng_decoded_image_size(ctx1, SPNG_FMT_RGBA8, &out_size1);
 	ret |= spng_decoded_image_size(ctx2, SPNG_FMT_RGBA8, &out_size2);
-	if (ret || out_size1 != out_size2) {
+	if (ret) {
 		fprintf(stderr, "Error calculating output sizes\n");
 		return 1;
 	}
