@@ -28,3 +28,4 @@ fails test-images/orange.png test-images/orange_diff.png
 fails test-images/orange.png test-images/orange_diff_green.png
 fails test-images/orange.png test-images/orange2.png
 fails test-images/funocaml.png test-images/funocaml2.png
+fails test-images/foo.png test-images/foo2.png
