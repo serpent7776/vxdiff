@@ -138,8 +138,10 @@ vxdiff:
 .x_loop_body:
 	; replace pixels having alpha=0 with white
 	kxor k6, k6, k6
+	kxor k7, k7, k7
 	vpcmpequb k6 {k4}, xmm1, xmm0
-	kshiftlb k7, k6, 1
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
 	kshiftlb k6, k6, 1
 	kor k7, k7, k6
 	kshiftlb k6, k6, 1
@@ -147,8 +149,10 @@ vxdiff:
 	vmovdqu8 xmm1 {k7}, xmm31
 	;
 	kxor k6, k6, k6
+	kxor k7, k7, k7
 	vpcmpequb k6 {k4}, xmm2, xmm0
-	kshiftlb k7, k6, 1
+	kshiftlb k6, k6, 1
+	kor k7, k7, k6
 	kshiftlb k6, k6, 1
 	kor k7, k7, k6
 	kshiftlb k6, k6, 1
