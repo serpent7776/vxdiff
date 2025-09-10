@@ -38,17 +38,15 @@ vxdiff:
 	kshiftlq k4, k3, 1 ; As
 	knotq k5, k4 ; RGBs
 
-	xor al, al
-	vpbroadcastb zmm0, al ; 0
-	dec al
-	vpbroadcastb zmm31, al ; 255
-	vpmovzxbd zmm30, xmm31
-	vcvtudq2ps zmm30, zmm30 ; 255.0f
 	mov al, 1
 	vpbroadcastb zmm3, al
+	vpxorq zmm0, zmm0, zmm0
+	vpsubb zmm31, zmm0, zmm3 ; 255
+	vpmovzxbd zmm30, xmm31
+	vcvtudq2ps zmm30, zmm30 ; 255.0f
 	vpmovzxbd zmm3, xmm3
-	vcvtudq2ps zmm3, zmm3 ; 1
-	vdivps zmm3, zmm3, zmm30
+	vcvtudq2ps zmm3, zmm3
+	vdivps zmm3, zmm3, zmm30 ; 1/255.0f
 
 	vmovups zmm7, [rgb2y]
 	vmovups zmm8, [rgb2i]
