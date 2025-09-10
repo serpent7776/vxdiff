@@ -44,6 +44,11 @@ vxdiff:
 	vpbroadcastb zmm31, al ; 255
 	vpmovzxbd zmm30, xmm31
 	vcvtudq2ps zmm30, zmm30 ; 255.0f
+	mov al, 1
+	vpbroadcastb zmm3, al
+	vpmovzxbd zmm3, xmm3
+	vcvtudq2ps zmm3, zmm3 ; 1
+	vdivps zmm3, zmm3, zmm30
 
 	vmovups zmm7, [rgb2y]
 	vmovups zmm8, [rgb2i]
@@ -166,8 +171,8 @@ vxdiff:
 	vcvtudq2ps zmm2, zmm2
 
 	; normalise alpha
-	vdivps zmm1 {k4}, zmm1, zmm30
-	vdivps zmm2 {k4}, zmm2, zmm30
+	vmulps zmm1 {k4}, zmm1, zmm3
+	vmulps zmm2 {k4}, zmm2, zmm3
 
 	; blend rgb with white pixel using alpha
 	vsubps zmm1 {k5}, zmm1, zmm30
