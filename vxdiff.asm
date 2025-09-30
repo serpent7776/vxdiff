@@ -27,9 +27,17 @@ vxdiff:
 	; RCX second image width in pixels
 	; R8 base image height in pixels
 	; R9 second image height in pixels
+	push rbp
+	mov rbp, rsp
+	push rbx
+	push r12
+	push r13
+	push r14
+	push r15
+	sub rsp, 24 ; locals + stack realignment to 16-byte boundary
 
 	; local vars:
-	%define OVERFLOWED_Y QWORD[rsp-32] ; number of columns in the base image that overflow the second image
+	%define OVERFLOWED_Y QWORD[rsp+0] ; number of columns in the base image that overflow the second image
 
 	mov rax, 0b0001000100010001000100010001000100010001000100010001000100010001
 	kmovq k1, rax ; Rs
@@ -258,4 +266,11 @@ vxdiff:
 
 .done:
 	mov eax, ebx
+	add rsp, 24
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop rbx
+	pop rbp
 	ret
