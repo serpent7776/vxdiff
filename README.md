@@ -1,6 +1,6 @@
 # vxdiff
 
-Faster than the fastest pixel-by-pixel image visual difference tool in the world, [odiff](https://github.com/dmtrKovalenko/odiff/).
+[odiff](https://github.com/dmtrKovalenko/odiff/) compatible pixel-by-pixel image visual difference tool.
 
 The comparison algorithm written entirely in AVX512 assembly.
 
